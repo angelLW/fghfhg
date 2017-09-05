@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="tjresearch.Mapper.ConturyMapMapper">
+	<insert id="insertItemTable">
+		insert into contury_item values(#{itemId},#{cityCode},#{cityName},#{enterpriseNum})
+	</insert>
+	<insert id="insertDataTable" parameterType="java.util.List" useGeneratedKeys="true">
+		insert into area(item_id,data) values 
+		 <foreach collection="list" index="index" item="item" open="" close="" separator=",">  
+            (#{item.itemId},#{item.data})
+        </foreach> 
+	</insert>
+	<select id="findCountryCode" resultType="java.lang.Integer">
+		
+		select item_id from contury_item where code like #{cityCode}
+	</select>
+	<resultMap type="tjresearch.pojo.Item" id="itemMap">
+		<id column="item_id" property="itemId"/>
+		<result column="code" property="code"/>
+		<result column="name" property="name"/>
+		<result column="num" property="num"/>
+	</resultMap>
+	<select id="findCountryData" resultType="java.lang.String">
+		select data from contury_area where item_id=#{itemId}
+	</select>
+	<select id="findItemByitemId" resultMap="itemMap">
+		select item_id,code,name,num from contury_item where item_id=#{itemId}
+	</select>
+	
+</mapper>

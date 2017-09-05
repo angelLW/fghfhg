@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="tjresearch.mapper.DataMapper">
+	<resultMap type="tjresearch.pojo.Item" id="itemMap">
+		<id column="item_id" property="itemId" />
+		<result column="item_name" property="itemName" />
+		<result column="item_unit" property="itemUnit" />
+		<result column="frequency_name" property="frequency" />
+		<result column="datatype_name" property="datatype" />
+		<result column="indus_name" property="indusName" />
+		<result column="index_code" property="indexName" />
+		<result column="item_code" property="itemCode" />
+		<result column="area_name" property="areaName" />
+	</resultMap>
+
+	<select id="queryAllItem" resultMap="itemMap">
+		select
+		item_id,item_name,item_unit,frequency_name,datatype_name,indus_name,index_code,item_code,area.name
+		as area_name
+		from highfreq_item ite
+		LEFT JOIN highfreq_bm_index ind ON
+		ite.index_id=ind.index_id
+		LEFT JOIN highfreq_bm_industry indus ON
+		ite.indus_id=indus.indus_id
+		LEFT JOIN highfreq_datatype type ON
+		ite.datatype_id=type.datatype_id
+		LEFT JOIN highfreq_frequency freq ON
+		ite.frequency_id=freq.frequency_id
+		LEFT JOIN cnarea_city area ON
+		ite.area_id=area.id
+	</select>
+
+	<select id="queryAllIndex" resultType="tjresearch.pojo.Index">
+		select index_id
+		indexId,index_code indexCode from highfreq_bm_index
+	</select>
+	<select id="queryAllIndustry" resultType="tjresearch.pojo.Industry">
+		select indus_id
+		industryId,indus_name industryName from highfreq_bm_industry
+	</select>
+	<select id="queryAllDataType" resultType="tjresearch.pojo.DataType">
+		select datatype_id
+		datatypeId,datatype_name datatypeName from highfreq_datatype
+	</select>
+	<select id="queryAllProvince" resultType="tjresearch.pojo.Area">
+		select id areaId,name
+		areaName from cnarea_city where area_code like '%0000000000'
+	</select>
+	<select id="queryAreaByAreaId" resultType="tjresearch.pojo.Area">
+		select id areaId,name
+		areaName from cnarea_city where parent_id=#{provinceId}
+	</select>
+	<select id="findFreqIdByName" resultType="java.lang.Integer">
+		select frequency_id
+		from highfreq_frequency where frequency_name=#{freqName}
+	</select>
+	<insert id="insertItem">
+		insert into
+		highfreq_item(item_name,item_unit,datatype_id,frequency_id,indus_id,index_id,item_code,area_id)
+		values(#{itemName},#{itemUnit},#{datatypeId},#{freqId},#{indusId},#{indexId},#{itemCode},#{areaId})
+	</insert>
+	<select id="itemUpdateView" resultType="tjresearch.pojo.ItemView">
+		select
+		item_id itemId,item_name itemName,item_unit itemUnit,frequency_name
+		frequencyName,ite.frequency_id frequencyId,datatype_name
+		datatypeName,ite.datatype_id datatypeId,indus_name
+		indusName,ite.indus_id indusId, index_code indexCode,ite.index_id
+		indexId,item_code itemCode,area.id areaId,area.name as areaName
+		from highfreq_item ite
+		LEFT JOIN highfreq_bm_index ind ON ite.index_id=ind.index_id
+		LEFT JOIN highfreq_bm_industry indus ON ite.indus_id=indus.indus_id
+		LEFT JOIN highfreq_datatype type ON ite.datatype_id=type.datatype_id
+		LEFT JOIN highfreq_frequency freq ON ite.frequency_id=freq.frequency_id
+		LEFT JOIN cnarea_city area ON ite.area_id=area.id where
+		ite.item_id=#{itemId}
+	</select>
+	<update id="updateItemSave">
+		update highfreq_item set item_name=#{itemName}
+		,item_unit=#{itemUnit},datatype_id=#{datatypeId},frequency_id=#{freqId},indus_id=#{indusId},index_id=#{indexId},item_code=#{itemCode},area_id=#{areaId} where item_id=#{itemId}
+	</update>
+	<select id="findAreaById" resultType="tjresearch.pojo.Area">
+		select id areaId,name
+		areaName,parent_id parentId from cnarea_city where id=#{areaId}
+	</select>
+	<delete id="deleteItemList">
+		delete from highfreq_item where item_id=#{itemId}
+	</delete>
+	<select id="queryItemByItemName" resultMap="itemMap">
+		select
+		item_id,item_name,item_unit,frequency_name,datatype_name,indus_name,index_code,item_code,area.name
+		as area_name
+		from highfreq_item ite
+		LEFT JOIN highfreq_bm_index ind ON
+		ite.index_id=ind.index_id
+		LEFT JOIN highfreq_bm_industry indus ON
+		ite.indus_id=indus.indus_id
+		LEFT JOIN highfreq_datatype type ON
+		ite.datatype_id=type.datatype_id
+		LEFT JOIN highfreq_frequency freq ON
+		ite.frequency_id=freq.frequency_id
+		LEFT JOIN cnarea_city area ON
+		ite.area_id=area.id where item_name like #{itemName}
+	</select>
+	<select id="queryItemNameByName" resultType="tjresearch.pojo.SearchData">
+	 	select item_id searchId,item_name searchName from highfreq_item where item_name like #{itemName}
+	</select>
+	<select id="queryItemByItemId"  resultMap="itemMap">
+		select
+		item_id,item_name,item_unit,frequency_name,datatype_name,indus_name,index_code,item_code,area.name
+		as area_name
+		from highfreq_item ite
+		LEFT JOIN highfreq_bm_index ind ON
+		ite.index_id=ind.index_id
+		LEFT JOIN highfreq_bm_industry indus ON
+		ite.indus_id=indus.indus_id
+		LEFT JOIN highfreq_datatype type ON
+		ite.datatype_id=type.datatype_id
+		LEFT JOIN highfreq_frequency freq ON
+		ite.frequency_id=freq.frequency_id
+		LEFT JOIN cnarea_city area ON
+		ite.area_id=area.id where item_id=#{id}
+	</select>
+
+</mapper>

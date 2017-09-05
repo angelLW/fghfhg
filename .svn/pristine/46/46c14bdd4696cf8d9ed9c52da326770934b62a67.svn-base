@@ -1,0 +1,64 @@
+package tjresearch.utils;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.rosuda.JRI.Rengine;
+
+public class RhighfreqUtils {
+	//格式：finalData<-calYoyAvg('S5130992,S5101376','2015-01-01','2017-08-06','0.38,0.62,0','0.39,-7.68',TRUE,'20,20');
+	/**
+	 * 如果有加权平均（线性函数），第一列是时间、原始值后面是平均数，然后是同比、高频预估、高频移动平均、高频预估调整、高频移动平均调整
+	 */
+	private static final Rengine ren = new Rengine(new String[] { "--vanilla" }, false, null);
+	private static String command = "%s<-calYoyAvg('%s', '%s','%s','%s', '%s',%s,'%s')";
+	/**
+	 * 
+	 * @param highfreqData r中用来接收的名称，没有实际意义
+	 * @param codes 需要抓取数据使用的code值
+	 * @param startDate 开始时间，格式yyyy-MM-dd
+	 * @param endDate 结束时间，格式yyyy-MM-dd
+	 * @param coefAvg 加权平均值的系数（线性关系），如果参数flag为false时，可以不填。格式：0,0,0
+	 * @param coefHigh 高频计算的参数，格式：0,0
+	 * @param flag 是否有加权平均  TRUE/FALSE
+	 * @param coefAdjust 调整参数 格式 0,0
+	 * @return 类型是Object的二维数组,第一列是时间
+	 */
+	public static Object[][] retrieveGfp(String highfreqData,String codes,String startDate,String endDate,String coefAvg,String coefHigh,String flag,String coefAdjust) 
+	{
+			ren.eval("setwd('E:/R/rworkspace/highfreq')");
+			ren.eval("source('E:/R/rworkspace/highfreq/highfreqRfinal.r')");
+			String retrieveStocksCommand = null;
+			//retrieveStocksCommand = String.format(command, "highfreqdata","S5130992,S5101376", "2015-01-01","2017-08-06","0.38,0.62,0","0.39,-7.68","TRUE","20,20");
+			retrieveStocksCommand = String.format(command, highfreqData,codes, startDate,endDate,coefAvg,coefHigh,flag,coefAdjust);
+			org.rosuda.JRI.REXP list = null;
+			try {
+				list = ren.eval(retrieveStocksCommand);
+				double[][] result = list.asDoubleMatrix();
+				Object[][] params = new Object[result.length][result[0].length];
+				for (int i = 0; i < result.length; i++) {
+					for (int j = 0; j < result[i].length; j++) {
+						if (!Double.isNaN(result[i][j])) {
+							params[i][j] = result[i][j];
+							if (j == 0) {
+								long ts = (long) (result[i][j] * 1000 * 60 * 60 * 24);
+								String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date(ts));
+								params[i][j] = dateStr;
+								
+							}
+						}
+						else {
+							params[i][j] = null;
+						}
+					}
+				}
+				
+				return params;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return null;
+		
+	}
+
+}

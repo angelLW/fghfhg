@@ -1,0 +1,29 @@
+package tjresearch.pojo;
+
+public class Area {
+	private int itemId;
+	private String data;
+	public Area() {
+	}
+	public Area(int itemId, String data) {
+		this.itemId = itemId;
+		this.data = data;
+	}
+	public int getItemId() {
+		return itemId;
+	}
+	public void setItemId(int itemId) {
+		this.itemId = itemId;
+	}
+	public String getData() {
+		return data;
+	}
+	public void setData(String data) {
+		this.data = data;
+	}
+	@Override
+	public String toString() {
+		return "Area [itemId=" + itemId + ", data=" + data + "]";
+	}
+
+}

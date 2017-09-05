@@ -1,0 +1,29 @@
+package tjresearch.utils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.Reader;
+
+public class ConturyUtils{
+	public static String readJson(String fileName){
+		try {
+			File file = new File(fileName);
+			Reader reader = new FileReader(file);
+			LineNumberReader lineReader = new LineNumberReader(reader);
+			String lineStr = null;
+			String str = "";
+			while((lineStr = lineReader.readLine())!=null){
+				str = str+lineStr;
+			}
+			return str;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			return null;
+		}
+		
+	}
+
+}

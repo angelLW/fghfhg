@@ -1,0 +1,128 @@
+package tjresearch.service;
+
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
+import tjresearch.Mapper.ConturyMapMapper;
+import tjresearch.pojo.Area;
+import tjresearch.pojo.Data;
+import tjresearch.pojo.Features;
+import tjresearch.pojo.Geometry;
+import tjresearch.pojo.Item;
+import tjresearch.pojo.Properties;
+import tjresearch.utils.ConturyUtils;
+
+@Service
+@MapperScan("tjresearch.Mapper")
+public class ConturyMapService {
+	@Autowired
+	private ConturyMapMapper conturyMapMapper;
+	private static int itemId = 1;
+	public void importConturyData() {
+		String fileName = "E:\\chinaMap\\countyGeos.json";
+		String areaStr = ConturyUtils.readJson(fileName);
+		JSONObject areaJson = JSON.parseObject(areaStr);
+		JSONArray jsonAreas = (JSONArray) areaJson.get("area");
+		for(int i = 0;i<jsonAreas.size();i++){
+			JSONObject province = (JSONObject) jsonAreas.get(i);
+//			String id =  province.get("id").toString();
+//			String proviceName = province.get("text").toString();
+			if(province.get("children")!=null){
+				JSONArray childArray = (JSONArray) province.get("children");
+				for(int j = 0;j<childArray.size();j++){
+					JSONObject city = (JSONObject) childArray.get(j);
+					String id =  city.get("id").toString();
+					String cityName = city.get("text").toString();
+					insertCity(city);
+				}
+			}else{
+				String id =  province.get("id").toString();
+				String cityName = province.get("text").toString();
+				insertCity(province);
+			}
+			
+		}
+		System.out.println("hh");
+	}
+	public void insertCity(JSONObject city){
+		JSONArray areaArray = (JSONArray) city.get("counties");
+		for(int j = 0;j<areaArray.size();j++){
+			JSONObject cityObject = (JSONObject) areaArray.get(j);
+			String cityName = cityObject.get("areaName").toString();//城市名称
+			String cityCode = cityObject.get("areaCode").toString();//城市编码
+			String enterpriseNum = cityObject.getString("value").toString();//企业数量
+			List<Area> dataList = new ArrayList<Area>();
+			JSONObject geoJsonObj = (JSONObject) cityObject.get("geo");
+			JSONObject geometryObj = (JSONObject) geoJsonObj.get("geometry");
+			if(geometryObj==null){
+				continue;
+			}
+			JSONArray coordArray = (JSONArray) geometryObj.get("coordinates");
+			for(int k = 0;k<coordArray.size();k++){
+				JSONArray valueArray = (JSONArray) coordArray.get(k);
+				for (Object object : valueArray) {
+					JSONArray oneArray = (JSONArray) object;
+					for (Object object2 : oneArray) {
+						String value =  object2.toString();
+						Area area = new Area(itemId, value);
+						dataList.add(area);
+					}
+				}
+			}
+			double num = Double.parseDouble(enterpriseNum);
+			conturyMapMapper.insertItemTable(itemId,cityCode,cityName,num);
+			conturyMapMapper.insertDataTable(dataList);
+			itemId++;
+		}
+	}
+	public Data findCityArea(String cityCode) {
+		List<Integer> itemIds = conturyMapMapper.findCountryCode(cityCode+"%");//通过市code找到该市下的所有县id
+		Data data = new Data();
+		List<Features> featList = new ArrayList<Features>();
+		for(int i = 0;i<itemIds.size();i++){
+			List<String> countryList = conturyMapMapper.findCountryData(itemIds.get(i));
+//			String cooStr = "[[[";
+//			for (String countryStr : countryList) {
+//				cooStr = cooStr+countryStr;
+//			}
+//			cooStr = cooStr+"]]]";
+			List<List<List<List<Double>>>> coordinates =new ArrayList<List<List<List<Double>>>>();
+			List<List<Double>> tList = new ArrayList<List<Double>>();
+			for (String countryStr : countryList) {
+				double longitude = Double.parseDouble(countryStr.split(",")[0].substring(1));
+				double latitude =  Double.parseDouble(countryStr.split(",")[1].replace("]", ""));
+				List<Double> valList = new ArrayList<Double>();
+				valList.add(longitude);
+				valList.add(latitude);
+				tList.add(valList);
+			}
+			List<List<List<Double>>> sList = new ArrayList<List<List<Double>>>();
+			sList.add(tList);
+			coordinates.add(sList);
+			
+			Item item = conturyMapMapper.findItemByitemId(itemIds.get(i));
+			Properties properties = new Properties(item.getName(),item.getCode());
+			Geometry geometry = new Geometry();
+			geometry.setCoordinates(coordinates);
+			Features features = new Features();
+			features.setGeometry(geometry);
+			features.setProperties(properties);
+			featList.add(features);
+			
+			
+		}
+	data.setFeatures(featList);
+	return data;
+	}
+	
+}

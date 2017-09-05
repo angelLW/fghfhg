@@ -1,0 +1,31 @@
+package tjresearch.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import tjresearch.pojo.Data;
+import tjresearch.service.ConturyMapService;
+
+@RestController
+public class ConturyMapController {
+	@Autowired
+	private ConturyMapService conturyMapService;
+	@RequestMapping("/importConturyData")
+	public String importConturyData(){
+		conturyMapService.importConturyData();
+		return "success";
+		
+	}
+	@RequestMapping("/findCityArea")
+	@ResponseBody
+	public Data findCityArea(){
+		String cityCode = "110000";
+		cityCode = cityCode.substring(0, 2);
+		Data data = conturyMapService.findCityArea(cityCode);
+		return data;
+	}
+
+
+}

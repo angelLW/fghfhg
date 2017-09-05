@@ -1,0 +1,28 @@
+package tjresearch.Mapper;
+
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import tjresearch.pojo.Area;
+import tjresearch.pojo.Item;
+
+@Mapper
+public interface ConturyMapMapper {
+
+	void insertItemTable(@Param("itemId") int itemId,@Param("cityCode") String cityCode,@Param("cityName") String cityName,@Param("enterpriseNum") double enterpriseNum);
+
+	void insertDataTable(List<Area> dataList);
+
+	List<Integer> findCountryCode(String cityCode);
+
+	List<String> findCountryData(Integer integer);
+
+	Item findItemByitemId(Integer integer);
+
+
+
+
+}
